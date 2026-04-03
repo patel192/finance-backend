@@ -29,26 +29,59 @@ export const createRecord = async (req, res) => {
 
 export const getRecords = async (req, res) => {
   try {
-    const { type, category, startDate, endDate } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      type,
+      category,
+      search,
+      startDate,
+      endDate,
+    } = req.query;
+
     const filter = {};
+
     if (type) {
       filter.type = type;
     }
+
     if (category) {
       filter.category = category;
     }
+
+    if (search) {
+      filter.notes = {
+        $regex: search,
+        $options: "i",
+      };
+    }
+
     if (startDate || endDate) {
       filter.date = {};
+
       if (startDate) {
         filter.date.$gte = new Date(startDate);
       }
+
       if (endDate) {
         filter.date.$lte = new Date(endDate);
       }
     }
-    const records = await Record.find(filter).sort({ date: -1 });
+
+    const skip = (page - 1) * limit;
+
+    const records = await Record.find(filter)
+      .sort({ date: -1 })
+      .skip(skip)
+      .limit(Number(limit));
+
+    // FIX — count total matching records
+    const totalRecords = await Record.countDocuments(filter);
+
     res.status(200).json({
-      count: records.length,
+      totalRecords,
+      currentPage: Number(page),
+      totalPages: Math.ceil(totalRecords / limit),
       records,
     });
   } catch (error) {

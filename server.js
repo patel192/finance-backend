@@ -4,6 +4,8 @@ import cors from "cors";
 import {connectDB} from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import recordRoutes from "./routes/recordRoutes.js";
+import dashboardRoutes from "./routes/dashboardRoutes.js";
+import errorMiddleware from "./middleware/errorMiddleware.js";
 dotenv.config();
 
 
@@ -22,3 +24,5 @@ app.listen(PORT,() => {
 });
 app.use("/api/auth",authRoutes);
 app.use("/api/records",recordRoutes);
+app.use("/api/dashboard",dashboardRoutes);
+app.use(errorMiddleware);
